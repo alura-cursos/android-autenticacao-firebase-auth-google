@@ -1,6 +1,10 @@
 package br.com.alura.aluraesporte.ui.fragment
 
+import android.app.Activity.RESULT_OK
+import android.content.ContentValues.TAG
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,14 +12,21 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import br.com.alura.aluraesporte.R
+import br.com.alura.aluraesporte.extensions.googleSignInClient
 import br.com.alura.aluraesporte.extensions.snackBar
 import br.com.alura.aluraesporte.model.Usuario
 import br.com.alura.aluraesporte.ui.viewmodel.ComponentesVisuais
 import br.com.alura.aluraesporte.ui.viewmodel.EstadoAppViewModel
 import br.com.alura.aluraesporte.ui.viewmodel.LoginViewModel
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.SignInButton
+import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.android.synthetic.main.login.*
 import org.koin.android.viewmodel.ext.android.sharedViewModel
 import org.koin.android.viewmodel.ext.android.viewModel
+
+const val RC_SIGN_IN_GOOGLE = 1
 
 class LoginFragment : Fragment() {
 
@@ -42,6 +53,32 @@ class LoginFragment : Fragment() {
         estadoAppViewModel.temComponentes = ComponentesVisuais()
         configuraBotaoLogin()
         configuraBotaoCadastro()
+        login_botao_signin_google.setOnClickListener {
+            val cliente = requireContext().googleSignInClient()
+            startActivityForResult(cliente.signInIntent, RC_SIGN_IN_GOOGLE)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_OK && requestCode == RC_SIGN_IN_GOOGLE) {
+            val contaGoogle = GoogleSignIn.getSignedInAccountFromIntent(data).result
+            Log.i(TAG, "onActivityResult: conta google autenticada $contaGoogle")
+            contaGoogle?.let { conta ->
+                val credencial = GoogleAuthProvider.getCredential(conta.idToken, null)
+                viewModel.vinculaContaGoogle(credencial)
+                    .observe(viewLifecycleOwner, Observer {
+                        it?.let { recurso ->
+                            if(recurso.dado){
+                                vaiParaListaProdutos()
+                            } else {
+                                val mensagem = recurso.erro ?: "Falha ao vincular com a conta Google"
+                                view?.snackBar(mensagem)
+                            }
+                        }
+                    })
+            }
+        }
     }
 
     private fun configuraBotaoCadastro() {

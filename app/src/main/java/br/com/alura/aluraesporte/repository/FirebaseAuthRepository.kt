@@ -79,11 +79,23 @@ class FirebaseAuthRepository(private val firebaseAuth: FirebaseAuth) {
 
     fun usuario(): LiveData<Usuario> {
         val liveData = MutableLiveData<Usuario>()
-        firebaseAuth.currentUser?.let {firebaseUser ->
-            firebaseUser.email?.let {email ->
+        firebaseAuth.currentUser?.let { firebaseUser ->
+            firebaseUser.email?.let { email ->
                 liveData.value = Usuario(email)
             }
         }
+        return liveData
+    }
+
+    fun vinculaContaGoogle(credencial: AuthCredential) : LiveData<Resource<Boolean>> {
+        val liveData = MutableLiveData<Resource<Boolean>>()
+        firebaseAuth.signInWithCredential(credencial)
+            .addOnSuccessListener {
+                liveData.value = Resource(true)
+            }
+            .addOnFailureListener {
+                liveData.value = Resource(false, "Falha ao vincular conta com a Google")
+            }
         return liveData
     }
 

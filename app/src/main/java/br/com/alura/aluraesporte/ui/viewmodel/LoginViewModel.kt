@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import br.com.alura.aluraesporte.model.Usuario
 import br.com.alura.aluraesporte.repository.FirebaseAuthRepository
 import br.com.alura.aluraesporte.repository.Resource
+import com.google.firebase.auth.AuthCredential
 
 class LoginViewModel(
     private val firebaseAuthRepository: FirebaseAuthRepository
@@ -21,5 +22,8 @@ class LoginViewModel(
     fun estaLogado(): Boolean = firebaseAuthRepository.estaLogado()
 
     fun naoEstaLogado(): Boolean = !estaLogado()
+
+    fun vinculaContaGoogle(credencial: AuthCredential): LiveData<Resource<Boolean>> =
+        firebaseAuthRepository.vinculaContaGoogle(credencial)
 
 }

@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import br.com.alura.aluraesporte.NavGraphDirections
 import br.com.alura.aluraesporte.R
+import br.com.alura.aluraesporte.extensions.googleSignInClient
 import br.com.alura.aluraesporte.ui.viewmodel.LoginViewModel
 import org.koin.android.viewmodel.ext.android.viewModel
 
@@ -30,6 +31,7 @@ abstract class BaseFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if(item.itemId == R.id.menu_principal_deslogar){
             loginViewModel.desloga()
+            requireContext().googleSignInClient().signOut()
             vaiParaLogin()
         }
         return super.onOptionsItemSelected(item)
